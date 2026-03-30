@@ -293,7 +293,7 @@ ul li, ol li { margin-bottom: 3px; }
   margin-top: 4px;
 }
 
-/* ===== Decision matrix ===== */
+/* ===== Score badges ===== */
 .decision-table td.recommend {
   background: #f0fdf4;
   font-weight: 700;
@@ -982,86 +982,8 @@ ul li, ol li { margin-bottom: 3px; }
   </tbody>
 </table>
 
-<h3 class="subsection-title">総合評価マトリクス</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>評価軸（各5点）</th>
-      <th class="th-a">A案: 北畑</th>
-      <th class="th-b">B案: 松沢</th>
-      <th class="th-c">C案: 外林</th>
-      <th class="th-d">D案: 堀江</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>自動化度</td>
-      <td><span class="score score-2">2</span></td>
-      <td><span class="score score-2">2</span></td>
-      <td><span class="score score-5">5</span></td>
-      <td><span class="score score-4">4</span>（DWD承認後5）</td>
-    </tr>
-    <tr>
-      <td>FB定量性・再現性</td>
-      <td><span class="score score-2">2</span></td>
-      <td><span class="score score-3">3</span></td>
-      <td><span class="score score-4">4</span></td>
-      <td><span class="score score-5">5</span></td>
-    </tr>
-    <tr>
-      <td>導入容易さ</td>
-      <td><span class="score score-2">2</span>（gBizINFO待ち）</td>
-      <td><span class="score score-2">2</span>（インフラ必要）</td>
-      <td><span class="score score-5">5</span></td>
-      <td><span class="score score-3">3</span>（DWD要）</td>
-    </tr>
-    <tr>
-      <td>コスト透明性</td>
-      <td><span class="score score-2">2</span></td>
-      <td><span class="score score-2">2</span></td>
-      <td><span class="score score-5">5</span></td>
-      <td><span class="score score-5">5</span></td>
-    </tr>
-    <tr>
-      <td>メンテナンス性</td>
-      <td><span class="score score-4">4</span></td>
-      <td><span class="score score-2">2</span></td>
-      <td><span class="score score-5">5</span></td>
-      <td><span class="score score-3">3</span></td>
-    </tr>
-    <tr>
-      <td>差別化・独自性</td>
-      <td><span class="score score-5">5</span>（非言語解析）</td>
-      <td><span class="score score-3">3</span></td>
-      <td><span class="score score-4">4</span></td>
-      <td><span class="score score-4">4</span></td>
-    </tr>
-    <tr>
-      <td>仕様書完成度</td>
-      <td><span class="score score-3">3</span></td>
-      <td><span class="score score-3">3</span></td>
-      <td><span class="score score-5">5</span></td>
-      <td><span class="score score-4">4</span></td>
-    </tr>
-    <tr>
-      <td><strong>合計 (35点満点)</strong></td>
-      <td><strong>20 / 35</strong></td>
-      <td><strong>17 / 35</strong></td>
-      <td><strong>33 / 35</strong></td>
-      <td><strong>28 / 35</strong></td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="success-box">
-  <strong>総合推奨: C案（外林）を採用し、D案（堀江）の定量評価設計を移植する</strong><br><br>
-  C案は「完全自動・ゼロインフラ・最速リリース・コスト明確」の4軸すべてで優位。藤田さんの「スピード感」要件に最も合致する。ただし、FBの定量性ではD案（堀江）の5軸ルーブリック+加重平均が優れており、C案にそのFB構造を組み込む形が理想的。<br><br>
-  <strong>推奨アクション:</strong> C案を基盤として採用 → D案の評価軸・ルーブリック設計をプロンプトに取り込む → A案の動画解析はv2.0フェーズで検討
-</div>
-
-<div class="note-box">
-  <strong>B案（松沢）の価値:</strong> 採用案の開発において、B案が指摘した「FBの受容性・トーン調整」は実装時に検討すべき重要な視点。採用案の設計に取り込むことを推奨する。
+<div class="info-box">
+  各案の詳細は仕様書リンク（比較一覧のURL列）を参照してください。比較軸ごとの分析は上記セクションにまとめています。
 </div>
 
 
