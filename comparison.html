@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クライアント面談AIフィードバック — 4案比較レビュー</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; scroll-behavior: smooth; }
+body {
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  color: #1a1a1a;
+  background: #fff;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ===== Sticky Pill Navigation ===== */
+#sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.97);
+  border-bottom: 1px solid #ccc;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#sticky-nav .nav-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #777;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.pill {
+  display: inline-block;
+  padding: 5px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.pill:hover, .pill.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+/* ===== Main Content ===== */
+#main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px 48px 80px;
+}
+
+/* ===== Header ===== */
+.report-header {
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+}
+.report-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.report-header .subtitle {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 16px;
+}
+.report-header .summary-box {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+.report-header .summary-box h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.report-header .summary-box ul,
+.report-header .summary-box ol {
+  padding-left: 20px;
+  font-size: 0.82rem;
+}
+.report-header .summary-box li {
+  margin-bottom: 4px;
+}
+
+/* ===== Section Headings ===== */
+h2.section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-bottom: 1px solid #999;
+  padding-bottom: 6px;
+  margin-top: 48px;
+  margin-bottom: 20px;
+}
+h3.subsection-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid #555;
+}
+
+/* ===== Tables ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+}
+table th, table td {
+  border: 1px solid #bbb;
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+table th {
+  background: #f0f0f0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+table td {
+  background: #fff;
+}
+table tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+/* ===== Column headers for 4-case tables ===== */
+.th-a { background: #f0f4ff !important; }
+.th-b { background: #f0fff4 !important; }
+.th-c { background: #fff8f0 !important; }
+.th-d { background: #fdf0ff !important; }
+
+/* ===== Paragraphs & Lists ===== */
+p { margin-bottom: 10px; font-size: 0.88rem; }
+ul, ol { margin-bottom: 10px; padding-left: 22px; font-size: 0.88rem; }
+ul li, ol li { margin-bottom: 3px; }
+
+/* ===== Highlight box (grey) ===== */
+.highlight-box {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  padding: 14px 18px;
+  margin: 12px 0 20px;
+  font-size: 0.85rem;
+}
+.highlight-box strong {
+  color: #1a1a1a;
+}
+
+/* ===== Note box (yellow, border-left) ===== */
+.note-box {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #78350f;
+}
+
+/* ===== Info box (blue, border-left) ===== */
+.info-box {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #1e3a5f;
+}
+
+/* ===== Accent box (dark, border-left) ===== */
+.accent-box {
+  background: #f5f5f5;
+  border-left: 4px solid #1a1a1a;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+}
+
+/* ===== Success box (green, border-left) ===== */
+.success-box {
+  background: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #14532d;
+}
+
+/* ===== Feature cards ===== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+.feature-card {
+  border: 1px solid #ddd;
+  padding: 20px;
+  background: #fff;
+}
+.feature-card .card-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.tag-a { background: #dbeafe; color: #1e40af; }
+.tag-b { background: #dcfce7; color: #166534; }
+.tag-c { background: #ffedd5; color: #9a3412; }
+.tag-d { background: #f3e8ff; color: #6b21a8; }
+
+.feature-card h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.feature-card p {
+  font-size: 0.82rem;
+  color: #444;
+  margin-bottom: 0;
+}
+.feature-card .strengths,
+.feature-card .weaknesses {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 0.82rem;
+}
+.feature-card .label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  color: #555;
+}
+.feature-card.wide {
+  grid-column: 1 / -1;
+}
+
+/* ===== Stat cards ===== */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+.stat-card {
+  border: 1px solid #ddd;
+  padding: 16px;
+  text-align: center;
+  background: #fff;
+}
+.stat-card .stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #777;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.stat-card .stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.stat-card .stat-desc {
+  font-size: 0.75rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* ===== Decision matrix ===== */
+.decision-table td.recommend {
+  background: #f0fdf4;
+  font-weight: 700;
+  color: #166534;
+}
+.decision-table td.runner-up {
+  background: #eff6ff;
+  color: #1e40af;
+}
+
+/* ===== Score badge ===== */
+.score {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-right: 2px;
+}
+.score-5 { background: #166534; color: #fff; }
+.score-4 { background: #15803d; color: #fff; }
+.score-3 { background: #ca8a04; color: #fff; }
+.score-2 { background: #ea580c; color: #fff; }
+.score-1 { background: #dc2626; color: #fff; }
+
+/* ===== Footer ===== */
+.report-footer {
+  border-top: 1px solid #999;
+  margin-top: 48px;
+  padding-top: 16px;
+  font-size: 0.78rem;
+  color: #777;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  #main { padding: 24px 20px 60px; }
+  .report-header h1 { font-size: 1.3rem; }
+  h2.section-title { font-size: 1.05rem; }
+  table { font-size: 0.78rem; }
+  table th, table td { padding: 5px 7px; }
+  #sticky-nav { padding: 10px 12px; gap: 6px; }
+  .pill { padding: 4px 12px; font-size: 0.72rem; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== Print ===== */
+@media print {
+  #sticky-nav { display: none; }
+  #main { padding: 0; max-width: 100%; }
+  body { font-size: 10pt; }
+  .report-header h1 { font-size: 16pt; }
+  h2.section-title { font-size: 13pt; page-break-after: avoid; }
+  h3.subsection-title { font-size: 11pt; page-break-after: avoid; }
+  table { font-size: 8pt; page-break-inside: avoid; }
+  table th, table td { padding: 3px 5px; }
+  .highlight-box, .note-box, .info-box, .accent-box, .success-box,
+  .feature-card, .stat-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  table th {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Pill Navigation ===== -->
+<nav id="sticky-nav">
+  <span class="nav-label">CONTENTS</span>
+  <a href="#overview" class="pill">概要</a>
+  <a href="#comparison" class="pill">比較一覧</a>
+  <a href="#architecture" class="pill">技術設計</a>
+  <a href="#automation" class="pill">自動化</a>
+  <a href="#cost" class="pill">コスト</a>
+  <a href="#swot" class="pill">強み・弱み</a>
+  <a href="#recommendation" class="pill">推奨</a>
+</nav>
+
+<!-- ===== Main Content ===== -->
+<div id="main">
+
+<header class="report-header" id="overview">
+  <h1>クライアント面談AIフィードバック — 4案比較レビュー</h1>
+  <p class="subtitle">4名の仕様書を比較し、採用案の判断材料を提供する</p>
+  <div class="summary-box">
+    <h3>3行サマリー</h3>
+    <ul>
+      <li><strong>完全自動化の優位性:</strong> C案（戸林）とD案（堀江）は「ユーザー操作ゼロ」を実現。A案（北畑）とB案（松沢）は手動トリガーが残り、利用定着リスクがある。</li>
+      <li><strong>FBの定量性・再現性:</strong> D案はtool_useによるJSONスコア構造化＋5軸ルーブリックで最も機械的に再現可能。C案はS/A/B/C/Dスコア+発話比率で実用的。A案はナラティブ形式のみで定量比較が難しい。</li>
+      <li><strong>導入リスク:</strong> C案はGAS単体・追加インフラゼロで最もリスクが低い。D案はDomain-Wide Delegation取得が必要で承認フローに依存するが、フォールバックが設計されている。</li>
+    </ul>
+  </div>
+</header>
+
+
+<!-- ===== 1. 比較一覧 ===== -->
+<h2 class="section-title" id="comparison">1. 概要比較（4案一覧）</h2>
+
+<p>4案の主要要素を横並びで比較する。</p>
+
+<div style="overflow-x: auto;">
+<table>
+  <thead>
+    <tr>
+      <th>比較項目</th>
+      <th class="th-a">A案: 北畑（AI.BUDDY）</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>コンセプト</strong></td>
+      <td>商談の熱量を勝ち筋に変えるリアルタイムパートナー</td>
+      <td>シニアコンサルタントが毎回レビューする仕組み</td>
+      <td>Google Meetで面談するだけでFBが自動で届く</td>
+      <td>AIが「視座の高い専門家」として厳しめのFBを返す</td>
+    </tr>
+    <tr>
+      <td><strong>AIモデル</strong></td>
+      <td>Gemini 1.5 Pro</td>
+      <td>Claude Sonnet / Opus 4.6</td>
+      <td>Claude Sonnet 4.6</td>
+      <td>Claude Sonnet 4.6</td>
+    </tr>
+    <tr>
+      <td><strong>基盤</strong></td>
+      <td>GAS（Webアプリ）</td>
+      <td>Python FastAPI または Node.js<br>Railway / Render / Cloud Run</td>
+      <td>GAS のみ（追加インフラゼロ）</td>
+      <td>TypeScript + tsx<br>→ GCP Cloud Functions予定</td>
+    </tr>
+    <tr>
+      <td><strong>入力方法</strong></td>
+      <td>動画・音声を手動アップロード</td>
+      <td>MVP: Slackコマンド/Webフォームに手動貼付<br>将来: Google Drive連携</td>
+      <td>Google Meet文字起こしを5分間隔で自動検知<br>（Zoom等は手動対応）</td>
+      <td>Google Meet文字起こしを1時間ポーリングで自動取得<br>（Meet/Zoom/対面すべて対応）</td>
+    </tr>
+    <tr>
+      <td><strong>自動化度</strong></td>
+      <td>手動トリガー（アップロード必要）</td>
+      <td>手動トリガー（テキスト貼付が必要）</td>
+      <td><strong>完全自動</strong>（操作ゼロ）</td>
+      <td><strong>完全自動</strong>（操作ゼロ）</td>
+    </tr>
+    <tr>
+      <td><strong>出力先</strong></td>
+      <td>GAS Webアプリ画面上のみ<br>（Slack/Notion記載なし）</td>
+      <td>Notion DB + Slack通知（メンション付き）</td>
+      <td>Google Docs + Google Sheets（履歴）+ Slack</td>
+      <td>Slack通知 + Notion議事録DB（スコアプロパティ付き）</td>
+    </tr>
+    <tr>
+      <td><strong>コスト目安</strong></td>
+      <td>明記なし<br>（Gemini API + gBizINFO API）</td>
+      <td>明記なし<br>（Claude API + ホスティング費）</td>
+      <td><strong>月約2,000円</strong><br>（Claude API費のみ、インフラ$0）</td>
+      <td><strong>月500〜2,300円</strong><br>（$0.03-0.15/面談 × 月100件想定）</td>
+    </tr>
+    <tr>
+      <td><strong>評価体系</strong></td>
+      <td>ナラティブ形式（要約・評価・改善・一手）<br>定量スコアなし</td>
+      <td>S/A/B/C/D + Good / Must Improve + 聞き漏らしリスト</td>
+      <td>S/A/B/C/D + フェーズ別時間配分 + 発話比率</td>
+      <td>5軸定量評価（1-5）+ 加重平均<br>tool_useでJSON構造化出力</td>
+    </tr>
+    <tr>
+      <td><strong>コンテキスト管理</strong></td>
+      <td>gBizINFO APIで企業情報を自動取得<br>AIが動的生成</td>
+      <td>Notion/管理画面からマネージャーが設定<br>更新履歴付き</td>
+      <td>Google Sheetsで管理<br>非エンジニアがブラウザで直接編集可能</td>
+      <td>JSONファイルで4コンテキスト定義済み<br>（BPO営業/会計/COREWO/汎用）</td>
+    </tr>
+    <tr>
+      <td><strong>主な差別化</strong></td>
+      <td>非言語解析（表情・沈黙・間）<br>gBizINFO企業情報自動取得<br>3ロール内部エージェント</td>
+      <td>FBの受容性リスクに言及<br>トーン調整の仕組みを検討<br>「厳しすぎる」問題を先読みして設計</td>
+      <td>設計哲学の明確さ<br>GAS vs Next.js 比較分析<br>4日間詳細タスク計画<br>KPI定義あり</td>
+      <td>5軸ルーブリック＋加重平均<br>致命的見落とし専用セクション<br>作業vs.コンサル二値判定<br>トレンド分析（月次レポート）</td>
+    </tr>
+    <tr>
+      <td><strong>仕様書URL</strong></td>
+      <td><a href="https://bpio-kitabata.github.io/specification/aibuddy.html" target="_blank">仕様書を開く</a></td>
+      <td>—</td>
+      <td>—</td>
+      <td><a href="https://kosukehoriebpio.github.io/sr-one-proposals/" target="_blank">仕様書を開く</a></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<!-- ===== 2. 技術アーキテクチャ ===== -->
+<h2 class="section-title" id="architecture">2. 技術設計の比較</h2>
+
+<h3 class="subsection-title">2.1 基盤・インフラ</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>観点</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>追加インフラ</strong></td>
+      <td>不要（GAS内完結）</td>
+      <td><strong>必要</strong><br>Railway / Render / Cloud Run 等のホスティング</td>
+      <td><strong>完全ゼロ</strong><br>GAS + Google Workspace のみ</td>
+      <td>現在はローカル実行<br>→ GCP Cloud Functions予定（追加費用）</td>
+    </tr>
+    <tr>
+      <td><strong>デプロイ難易度</strong></td>
+      <td>低（GAS）</td>
+      <td>中〜高（サーバー設定・環境変数管理が必要）</td>
+      <td><strong>最低</strong>（GASスクリプト貼付のみ）</td>
+      <td>中（tsx実行環境 / GCP移行後は低）</td>
+    </tr>
+    <tr>
+      <td><strong>AIモデル選択</strong></td>
+      <td>Gemini 1.5 Pro<br>（動画直接入力が可能）</td>
+      <td>Claude Sonnet/Opus選択可<br>（コスト vs 品質のトレードオフ記述あり）</td>
+      <td>Claude Sonnet 4.6<br>（テキストのみ）</td>
+      <td>Claude Sonnet 4.6<br>（tool_useでJSON出力を構造化）</td>
+    </tr>
+    <tr>
+      <td><strong>メンテナンス性</strong></td>
+      <td>GASは書き込み・閲覧が容易<br>gBizINFO依存が懸念</td>
+      <td>外部ホスティングのため<br>エンジニアがいないと障害対応困難</td>
+      <td><strong>最高</strong><br>Google Workspaceがあれば誰でも触れる</td>
+      <td>TypeScript知識が必要<br>GCP移行後は標準化</td>
+    </tr>
+    <tr>
+      <td><strong>文字起こし取得方法</strong></td>
+      <td>動画/音声ファイルをGeminiに直接入力</td>
+      <td>MVP: 手動テキスト貼付<br>将来: Drive連携</td>
+      <td>Google Meet標準の文字起こし機能をポーリング</td>
+      <td>Google Meet Gemini文字起こしをDrive経由で取得<br>（Domain-Wide Delegation）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="subsection-title">2.2 フィードバック設計の詳細</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>観点</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>定量スコア</strong></td>
+      <td>なし（ナラティブのみ）</td>
+      <td>S〜Dグレードのみ</td>
+      <td>S〜Dグレード + 発話比率・時間配分</td>
+      <td><strong>5軸×1-5点 + 加重平均</strong><br>JSON構造化出力</td>
+    </tr>
+    <tr>
+      <td><strong>ルーブリック</strong></td>
+      <td>記載なし</td>
+      <td>なし（FBトーンの調整のみ言及）</td>
+      <td>共通基準 + 事業部固有基準</td>
+      <td><strong>軸ごとのルーブリック定義あり</strong><br>カスタマイズ可能</td>
+    </tr>
+    <tr>
+      <td><strong>特殊セクション</strong></td>
+      <td>非言語解析（表情・沈黙）<br>3ロール内部エージェント（評価/批判/統合）</td>
+      <td>「プロの財務コンサルならこうする」<br>聞き漏らし質問リスト（理由付き）</td>
+      <td>3層構造（構造分析→品質評価→戦略提言）<br>フェーズ別時間配分</td>
+      <td>「致命的見落とし」専用セクション<br>「作業 vs コンサルティング」二値判定</td>
+    </tr>
+    <tr>
+      <td><strong>トレンド分析</strong></td>
+      <td>なし</td>
+      <td>言及なし</td>
+      <td>Google Sheetsに履歴蓄積（閲覧は手動）</td>
+      <td><strong>月次個人・チームレポートの自動生成設計あり</strong></td>
+    </tr>
+    <tr>
+      <td><strong>成功指標 (KPI)</strong></td>
+      <td>なし</td>
+      <td>なし</td>
+      <td><strong>定義あり</strong><br>（月50回分析、参考になった率70%、財務確認率30%→80%等）</td>
+      <td>部分的記述あり<br>（スコア改善傾向の把握）</td>
+    </tr>
+  </tbody>
+</table>
+
+
+<!-- ===== 3. 自動化 ===== -->
+<h2 class="section-title" id="automation">3. 自動化度の比較</h2>
+
+<div class="note-box">
+  <strong>重要な判断軸:</strong> 藤田さんの「スピード感」要件を満たすには、社員が「面談後に何か操作をする」という運用を前提とする案は定着リスクを抱える。利用頻度が担保されない限り、改善効果が生まれない。
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>観点</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>ユーザーの必要操作</strong></td>
+      <td>動画/音声ファイルをGASアプリにアップロード</td>
+      <td>面談テキストをSlackコマンドまたはWebフォームに貼付</td>
+      <td><strong>Google Meetの「文字起こし」をONにするだけ</strong><br>（習慣化済みなら操作ゼロ）</td>
+      <td><strong>Google Meetの録音・文字起こしをONにするだけ</strong><br>（既存ルールとして運用可）</td>
+    </tr>
+    <tr>
+      <td><strong>自動検知の仕組み</strong></td>
+      <td>なし（手動トリガー）</td>
+      <td>なし（手動トリガー）</td>
+      <td>5分間隔ポーリング<br>Google Driveを自動監視</td>
+      <td>1時間間隔ポーリング<br>Domain-Wide DelegationでDrive自動走査</td>
+    </tr>
+    <tr>
+      <td><strong>Zoom等 Meet以外の対応</strong></td>
+      <td>動画ファイルがあれば対応可能</td>
+      <td>テキストを貼れば対応可能</td>
+      <td>手動アップロードで対応可能</td>
+      <td>対応可（Meet/Zoom/対面 メディア非依存と明記）</td>
+    </tr>
+    <tr>
+      <td><strong>利用されないリスクへの対処</strong></td>
+      <td>言及なし</td>
+      <td>言及なし</td>
+      <td><strong>明示的に分析</strong>：<br>「全自動なので使わないという選択肢がない」</td>
+      <td>言及なし（自動化で暗黙的に解決）</td>
+    </tr>
+    <tr>
+      <td><strong>個人DriveのFB自動取得</strong></td>
+      <td>手動アップロードが必要</td>
+      <td>不可（手動貼付）</td>
+      <td>可（各自のDriveを監視）</td>
+      <td><strong>可（全社員Drive自動走査）</strong><br>Domain-Wide Delegationが承認されれば最も包括的</td>
+    </tr>
+    <tr>
+      <td><strong>ポーリング間隔</strong></td>
+      <td>—</td>
+      <td>—</td>
+      <td>5分間隔（即時に近い）</td>
+      <td>1時間間隔（当日中に届く）</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="stat-row">
+  <div class="stat-card">
+    <div class="stat-label">A案 自動化スコア</div>
+    <div class="stat-value">2 / 5</div>
+    <div class="stat-desc">手動アップロード必須</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">B案 自動化スコア</div>
+    <div class="stat-value">2 / 5</div>
+    <div class="stat-desc">手動テキスト貼付が必要</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">C案 自動化スコア</div>
+    <div class="stat-value">5 / 5</div>
+    <div class="stat-desc">文字起こしONで完全自動</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">D案 自動化スコア</div>
+    <div class="stat-value">5 / 5</div>
+    <div class="stat-desc">Domain-Wide Delegation取得後</div>
+  </div>
+</div>
+
+
+<!-- ===== 4. コスト・導入ハードル ===== -->
+<h2 class="section-title" id="cost">4. コスト・導入ハードル</h2>
+
+<h3 class="subsection-title">4.1 初期導入に必要な作業</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>作業項目</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>APIキー取得</strong></td>
+      <td>Gemini API<br>gBizINFO API（数営業日〜1週間）</td>
+      <td>Claude API</td>
+      <td>Claude API</td>
+      <td>Claude API</td>
+    </tr>
+    <tr>
+      <td><strong>サーバー・インフラ設定</strong></td>
+      <td>不要</td>
+      <td><strong>必要</strong><br>（ホスティング先のアカウント作成・設定）</td>
+      <td><strong>不要</strong></td>
+      <td>当面不要（ローカル実行）<br>GCP移行時に1回必要</td>
+    </tr>
+    <tr>
+      <td><strong>Google権限設定</strong></td>
+      <td>不要</td>
+      <td>将来フェーズで必要</td>
+      <td>GASのDriveアクセス許可のみ（簡易）</td>
+      <td><strong>Domain-Wide Delegation取得が必要</strong><br>Google Workspace管理者の承認フロー</td>
+    </tr>
+    <tr>
+      <td><strong>コンテキスト初期設定</strong></td>
+      <td>gBizINFO APIが返す企業情報から自動生成</td>
+      <td>マネージャーがNotionに初期入力（負荷あり）</td>
+      <td>Google Sheetsに初期設定（比較的容易）</td>
+      <td>JSONファイルに4コンテキスト定義済み<br>（カスタマイズのみ）</td>
+    </tr>
+    <tr>
+      <td><strong>初期設定の工数</strong></td>
+      <td>中（gBizINFO API申請がブロッカー）</td>
+      <td>高（インフラ + コンテキスト設定）</td>
+      <td><strong>低</strong>（GAS貼付 + Sheets設定）</td>
+      <td>中（Domain-Wide Delegation承認待ち）</td>
+    </tr>
+    <tr>
+      <td><strong>スケジュール</strong></td>
+      <td>具体的なロードマップなし<br>gBizINFO申請が不確定要素</td>
+      <td>3/30〜4/3（4日間）<br>最もコンパクトな計画</td>
+      <td>4日間詳細タスク<br>AM/PM単位のカット対象リスト付き</td>
+      <td>4日間ビルドプラン<br>DWD取得失敗時のフォールバック明記</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="subsection-title">4.2 ランニングコスト比較</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>コスト項目</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>AIモデル費用</strong></td>
+      <td>Gemini 1.5 Pro<br>（動画入力は高コスト）<br>未明記</td>
+      <td>Claude Sonnet or Opus<br>（Opus選択で割高）<br>未明記</td>
+      <td>Claude Sonnet 4.6<br><strong>月約2,000円</strong></td>
+      <td>Claude Sonnet 4.6<br><strong>$0.03-0.15/面談</strong><br>月100件で約500〜2,300円</td>
+    </tr>
+    <tr>
+      <td><strong>インフラ費用</strong></td>
+      <td>$0（GAS無料枠）</td>
+      <td>$5〜20/月程度（ホスティング）</td>
+      <td><strong>$0</strong>（GAS無料枠）</td>
+      <td>$0（ローカル）<br>GCP移行後は$5〜10/月程度</td>
+    </tr>
+    <tr>
+      <td><strong>外部API費用</strong></td>
+      <td>gBizINFO API（無料〜有料プランあり）</td>
+      <td>なし</td>
+      <td>なし</td>
+      <td>なし</td>
+    </tr>
+    <tr>
+      <td><strong>月額合計目安</strong></td>
+      <td>不透明（動画処理コスト次第）</td>
+      <td>不透明（Opus選択で高額化の可能性）</td>
+      <td><strong>約2,000円</strong>（最も明確）</td>
+      <td><strong>約500〜2,300円</strong>（明確）</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="info-box">
+  <strong>コスト透明性の観点:</strong> C案・D案はランニングコストの数値を明記しており意思決定しやすい。A案・B案はコストが不明確で、承認後に想定外の費用が発生するリスクがある。
+</div>
+
+
+<!-- ===== 5. 強み・弱み ===== -->
+<h2 class="section-title" id="swot">5. 各案の強み・弱み</h2>
+
+<div class="feature-grid">
+
+  <!-- A案 -->
+  <div class="feature-card">
+    <span class="card-tag tag-a">A案: 北畑 — AI.BUDDY v5.2</span>
+    <h4>商談の「非言語」まで解析する唯一の案</h4>
+    <div class="label">強み</div>
+    <ul class="strengths">
+      <li><strong>唯一無二の差別化:</strong> 非言語解析（表情・沈黙・間）はテキスト系の他案が対応できない価値を提供する。将来の動画解析時代の先駆け</li>
+      <li><strong>企業情報の自動文脈化:</strong> gBizINFO APIで法人番号から業界属性を取得し、評価基準をAIが動的生成する設計はユニーク</li>
+      <li><strong>3ロール内部エージェント:</strong> 「評価・批判・統合」の分業設計は、AIの出力品質を高める可能性がある</li>
+    </ul>
+    <div class="label">弱み・懸念</div>
+    <ul class="weaknesses">
+      <li><strong>手動アップロード運用の現実性:</strong> 毎回動画ファイルをアップロードする行動変容を全社員に求めるのは定着リスクが高い</li>
+      <li><strong>gBizINFO API申請がブロッカー:</strong> 申請から発行まで数営業日〜1週間かかり、スプリント期間内に完成するか不確定。スケジュールも曖昧</li>
+      <li><strong>定量スコアなし:</strong> ナラティブ形式のみで、個人間・時系列のスコア比較ができない。FBの客観性・再現性に課題</li>
+    </ul>
+  </div>
+
+  <!-- B案 -->
+  <div class="feature-card">
+    <span class="card-tag tag-b">B案: 松沢 — クライアント面談AIFBツール</span>
+    <h4>受容性リスクを先読みした「使われる」設計</h4>
+    <div class="label">強み</div>
+    <ul class="strengths">
+      <li><strong>FBの受容性を先読み:</strong> 「厳しすぎる」問題を正面から認め、トーン調整の仕組みを設計段階から盛り込んでいる。実際の現場定着を意識した視点</li>
+      <li><strong>コンテキスト更新管理:</strong> マネージャーがNotionから更新でき、変更履歴を保持する設計は運用継続性が高い</li>
+      <li><strong>最短リリーススケジュール:</strong> 4/3完成という具体的な日付を明示し、スプリントゴールが最も明確</li>
+    </ul>
+    <div class="label">弱み・懸念</div>
+    <ul class="weaknesses">
+      <li><strong>手動貼付の運用は持続しない:</strong> テキストを毎回Slackコマンドに貼るステップが残る。面倒になって「やらない」日が出るのは時間の問題</li>
+      <li><strong>追加インフラの維持コスト:</strong> Railway/Cloud Runのような外部ホスティングは障害時の対応・運用コストが増加する。エンジニアが不在の場合に問題</li>
+    </ul>
+  </div>
+
+  <!-- C案 -->
+  <div class="feature-card">
+    <span class="card-tag tag-c">C案: 戸林 — GWS前提完全自動化 v2.0</span>
+    <h4>「使わないという選択肢がない」ゼロ運用負荷</h4>
+    <div class="label">強み</div>
+    <ul class="strengths">
+      <li><strong>完全自動 + ゼロインフラ:</strong> 「追加インフラ完全ゼロ」「ユーザー操作ゼロ」の組み合わせは他案にない最大の強み。導入障壁が最も低い</li>
+      <li><strong>仕様書の完成度が最高:</strong> GAS vs Next.js比較、4日間AM/PM単位スケジュール、KPI定義、カット対象リスト、設計哲学まで記述。意思決定に必要な情報が揃っている</li>
+      <li><strong>コンテキスト管理の民主化:</strong> Google Sheetsで非エンジニアがブラウザから直接編集できる。Notionアカウントや管理画面が不要</li>
+    </ul>
+    <div class="label">弱み・懸念</div>
+    <ul class="weaknesses">
+      <li><strong>GAS 6分制限:</strong> 長時間面談の文字起こしが長い場合、分割処理が必要。一定の技術的複雑性が残る（一応対処済みと記載あり）</li>
+      <li><strong>Google Meet限定が実態:</strong> Zoom等は「手動対応」になり、Meet移行が前提。社内でZoom比率が高い場合は制約になる</li>
+    </ul>
+  </div>
+
+  <!-- D案 -->
+  <div class="feature-card">
+    <span class="card-tag tag-d">D案: 堀江 — クライアント面談AIFBシステム v3</span>
+    <h4>定量性と拡張性が最も高い「データドリブン」設計</h4>
+    <div class="label">強み</div>
+    <ul class="strengths">
+      <li><strong>スコアの定量性・再現性:</strong> 5軸×1-5点+加重平均+ルーブリックという採点基準は、誰が見ても同じ基準で判断できる。個人成長の追跡・チーム比較が可能</li>
+      <li><strong>致命的見落とし専用セクション:</strong> 「作業 vs コンサルティング」判定と組み合わせ、上司が最優先で確認すべき点を明示する設計は実用的</li>
+      <li><strong>将来拡張への設計:</strong> Notionスコアから月次個人・チームレポート自動生成の設計が既にある。Phase 2以降も具体的</li>
+    </ul>
+    <div class="label">弱み・懸念</div>
+    <ul class="weaknesses">
+      <li><strong>Domain-Wide Delegation取得がクリティカルパス:</strong> Google Workspace管理者の承認が必要で、社内調整が遅れると4日ビルドプランが崩れる。フォールバックはあるが機能が限定される</li>
+      <li><strong>TypeScript実行環境の依存:</strong> 現在はローカル実行前提で、再現性・安定性の担保には早急なGCP移行が必要。移行前は「堀江のPCが止まったら止まる」状態になりうる</li>
+    </ul>
+  </div>
+
+</div>
+
+<h3 class="subsection-title">拡張性・将来ビジョン比較</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Phase</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>v1.0 / MVP</strong></td>
+      <td>GAS Webアプリで動画解析FB</td>
+      <td>Slackコマンドで手動FB</td>
+      <td>Google Meet完全自動FB</td>
+      <td>Meet文字起こし自動取得 + Slack/Notion出力</td>
+    </tr>
+    <tr>
+      <td><strong>v2.0</strong></td>
+      <td>（記載なし）</td>
+      <td>Google Drive自動連携に移行</td>
+      <td>Gemini動画解析統合<br>（A案とのマージ構想あり）</td>
+      <td>月次個人・チームレポート自動生成</td>
+    </tr>
+    <tr>
+      <td><strong>v3.0以降</strong></td>
+      <td>（記載なし）</td>
+      <td>（記載なし）</td>
+      <td>リアルタイム耳打ち（面談中アシスト）</td>
+      <td>（記載なし）</td>
+    </tr>
+    <tr>
+      <td><strong>他案との統合</strong></td>
+      <td>C案にv2.0で統合される想定（C案側より）</td>
+      <td>—</td>
+      <td>A案（動画解析）をv2.0に統合予定</td>
+      <td>—</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="highlight-box">
+  <strong>注目点:</strong> C案（戸林）は v2.0でA案（北畑）の動画解析を取り込む構想を明示している。つまり「まずC案で完全自動化を確立し、A案の非言語解析を後から加える」というロードマップが既に検討されている。
+</div>
+
+
+<!-- ===== 6. 推奨 ===== -->
+<h2 class="section-title" id="recommendation">6. 判断軸別の推奨案</h2>
+
+<p>何を最優先に置くかによって推奨案が変わる。藤田さんが重視する軸を確認して判断してほしい。</p>
+
+<table class="decision-table">
+  <thead>
+    <tr>
+      <th>重視する軸</th>
+      <th>推奨案</th>
+      <th>次点</th>
+      <th>理由</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>最速リリース</strong></td>
+      <td class="recommend">C案（戸林）</td>
+      <td class="runner-up">B案（松沢）</td>
+      <td>GASのみで追加設定不要。gBizINFO申請・DWD承認・インフラ構築のいずれも不要。4日間スケジュールが最も実現可能性が高い</td>
+    </tr>
+    <tr>
+      <td><strong>自動化度・定着率</strong></td>
+      <td class="recommend">C案（戸林）/ D案（堀江）同率</td>
+      <td class="runner-up">—</td>
+      <td>両案とも操作ゼロ。C案はMeet文字起こしONだけ、D案はDWD承認後に全社自動。A案・B案は手動ステップが必須で定着しない可能性が高い</td>
+    </tr>
+    <tr>
+      <td><strong>FB品質・定量性</strong></td>
+      <td class="recommend">D案（堀江）</td>
+      <td class="runner-up">C案（戸林）</td>
+      <td>5軸ルーブリック+加重平均+JSON構造化は「評価基準の再現性」が最も高い。スコアの時系列追跡・チーム比較が可能。C案のS/A/B/C/D+発話比率も実用的</td>
+    </tr>
+    <tr>
+      <td><strong>運用コスト最小</strong></td>
+      <td class="recommend">C案（戸林）</td>
+      <td class="runner-up">D案（堀江）</td>
+      <td>月約2,000円、インフラ$0が最も明確。D案も同水準だがGCP移行後に追加費用が発生。B案はホスティング費用が加算される</td>
+    </tr>
+    <tr>
+      <td><strong>非言語・動画解析</strong></td>
+      <td class="recommend">A案（北畑）</td>
+      <td class="runner-up">—</td>
+      <td>非言語解析（表情・沈黙・間）はA案が唯一。ただし手動アップロード運用が前提となり、定着リスクと引き換えになる</td>
+    </tr>
+    <tr>
+      <td><strong>将来拡張性</strong></td>
+      <td class="recommend">C案（戸林）</td>
+      <td class="runner-up">D案（堀江）</td>
+      <td>C案はv2.0でA案統合、v3.0でリアルタイム耳打ちまでのロードマップが最も具体的。D案は月次トレンドレポートの設計が既にある</td>
+    </tr>
+    <tr>
+      <td><strong>メンテナンス不要度</strong></td>
+      <td class="recommend">C案（戸林）</td>
+      <td class="runner-up">A案（北畑）</td>
+      <td>GAS + Google Worksheetはエンジニアなしで運用・変更が可能。B案のような外部ホスティングは障害時にエンジニア対応が必要</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="subsection-title">総合評価マトリクス</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>評価軸（各5点）</th>
+      <th class="th-a">A案: 北畑</th>
+      <th class="th-b">B案: 松沢</th>
+      <th class="th-c">C案: 戸林</th>
+      <th class="th-d">D案: 堀江</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>自動化度</td>
+      <td><span class="score score-2">2</span></td>
+      <td><span class="score score-2">2</span></td>
+      <td><span class="score score-5">5</span></td>
+      <td><span class="score score-4">4</span>（DWD承認後5）</td>
+    </tr>
+    <tr>
+      <td>FB定量性・再現性</td>
+      <td><span class="score score-2">2</span></td>
+      <td><span class="score score-3">3</span></td>
+      <td><span class="score score-4">4</span></td>
+      <td><span class="score score-5">5</span></td>
+    </tr>
+    <tr>
+      <td>導入容易さ</td>
+      <td><span class="score score-2">2</span>（gBizINFO待ち）</td>
+      <td><span class="score score-2">2</span>（インフラ必要）</td>
+      <td><span class="score score-5">5</span></td>
+      <td><span class="score score-3">3</span>（DWD要）</td>
+    </tr>
+    <tr>
+      <td>コスト透明性</td>
+      <td><span class="score score-2">2</span></td>
+      <td><span class="score score-2">2</span></td>
+      <td><span class="score score-5">5</span></td>
+      <td><span class="score score-5">5</span></td>
+    </tr>
+    <tr>
+      <td>メンテナンス性</td>
+      <td><span class="score score-4">4</span></td>
+      <td><span class="score score-2">2</span></td>
+      <td><span class="score score-5">5</span></td>
+      <td><span class="score score-3">3</span></td>
+    </tr>
+    <tr>
+      <td>差別化・独自性</td>
+      <td><span class="score score-5">5</span>（非言語解析）</td>
+      <td><span class="score score-3">3</span></td>
+      <td><span class="score score-4">4</span></td>
+      <td><span class="score score-4">4</span></td>
+    </tr>
+    <tr>
+      <td>仕様書完成度</td>
+      <td><span class="score score-3">3</span></td>
+      <td><span class="score score-3">3</span></td>
+      <td><span class="score score-5">5</span></td>
+      <td><span class="score score-4">4</span></td>
+    </tr>
+    <tr>
+      <td><strong>合計 (35点満点)</strong></td>
+      <td><strong>20 / 35</strong></td>
+      <td><strong>17 / 35</strong></td>
+      <td><strong>33 / 35</strong></td>
+      <td><strong>28 / 35</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="success-box">
+  <strong>総合推奨: C案（戸林）を採用し、D案（堀江）の定量評価設計を移植する</strong><br><br>
+  C案は「完全自動・ゼロインフラ・最速リリース・コスト明確」の4軸すべてで優位。藤田さんの「スピード感」要件に最も合致する。ただし、FBの定量性ではD案（堀江）の5軸ルーブリック+加重平均が優れており、C案にそのFB構造を組み込む形が理想的。<br><br>
+  <strong>推奨アクション:</strong> C案を基盤として採用 → D案の評価軸・ルーブリック設計をプロンプトに取り込む → A案の動画解析はv2.0フェーズで検討
+</div>
+
+<div class="note-box">
+  <strong>B案（松沢）の価値:</strong> 採用案の開発において、B案が指摘した「FBの受容性・トーン調整」は実装時に検討すべき重要な視点。採用案の設計に取り込むことを推奨する。
+</div>
+
+
+<!-- ===== Footer ===== -->
+<footer class="report-footer">
+  <p>p032 仕様比較レビュー &mdash; 2026-03-30 &mdash; 作成: Document Writer Agent</p>
+</footer>
+
+</div><!-- /#main -->
+
+<!-- ===== Scroll Spy ===== -->
+<script>
+(function() {
+  const pills = document.querySelectorAll('.pill');
+  const ids = Array.from(pills).map(p => p.getAttribute('href').slice(1));
+  function update() {
+    let current = ids[0];
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= 80) current = id;
+    }
+    pills.forEach(p => {
+      p.classList.toggle('active', p.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+</body>
+</html>
