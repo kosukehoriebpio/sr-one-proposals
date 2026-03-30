@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クライアント面談AIフィードバックシステム — 仕様提案書</title>
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; scroll-behavior: smooth; }
+body {
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  color: #1a1a1a;
+  background: #fff;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ===== Sticky Pill Navigation ===== */
+#sticky-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.97);
+  border-bottom: 1px solid #ccc;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+#sticky-nav .nav-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #777;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.pill {
+  display: inline-block;
+  padding: 5px 16px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555;
+  text-decoration: none;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.pill:hover, .pill.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+
+/* ===== Main Content ===== */
+#main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px 48px 80px;
+}
+
+/* ===== Header ===== */
+.report-header {
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 20px;
+  margin-bottom: 32px;
+}
+.report-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+.report-header .subtitle {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 16px;
+}
+.report-header .meta {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 16px;
+}
+.report-header .summary-box {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+.report-header .summary-box h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.report-header .summary-box ul {
+  padding-left: 20px;
+  font-size: 0.82rem;
+}
+.report-header .summary-box li {
+  margin-bottom: 4px;
+}
+
+/* ===== Section Headings ===== */
+h2.section-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-bottom: 1px solid #999;
+  padding-bottom: 6px;
+  margin-top: 48px;
+  margin-bottom: 20px;
+}
+h3.subsection-title {
+  font-size: 1.0rem;
+  font-weight: 700;
+  margin-top: 32px;
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 3px solid #555;
+}
+
+/* ===== Tables ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+}
+table th, table td {
+  border: 1px solid #bbb;
+  padding: 7px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+table th {
+  background: #f0f0f0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+table td { background: #fff; }
+table tr:nth-child(even) td { background: #fafafa; }
+
+/* ===== Paragraphs & Lists ===== */
+p { margin-bottom: 10px; font-size: 0.88rem; }
+ul, ol { margin-bottom: 10px; padding-left: 22px; font-size: 0.88rem; }
+ul li, ol li { margin-bottom: 3px; }
+
+/* ===== Highlight box (grey) ===== */
+.highlight-box {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  padding: 14px 18px;
+  margin: 12px 0 20px;
+  font-size: 0.85rem;
+}
+.highlight-box strong { color: #1a1a1a; }
+
+/* ===== Accent box (red border) ===== */
+.accent-box {
+  background: #fef2f2;
+  border-left: 4px solid #dc2626;
+  padding: 12px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.84rem;
+  color: #7f1d1d;
+}
+
+/* ===== Note box (yellow) ===== */
+.note-box {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #78350f;
+}
+
+/* ===== Info box (blue) ===== */
+.info-box {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #1e3a5f;
+}
+
+/* ===== Success box (green) ===== */
+.success-box {
+  background: #f0fdf4;
+  border-left: 4px solid #22c55e;
+  padding: 10px 16px;
+  margin: 12px 0 20px;
+  font-size: 0.82rem;
+  color: #14532d;
+}
+
+/* ===== Feature cards ===== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+.feature-card {
+  border: 1px solid #ddd;
+  padding: 20px;
+  background: #fff;
+}
+.feature-card .feature-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #999;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.feature-card h4 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.feature-card p {
+  font-size: 0.8rem;
+  color: #444;
+}
+
+/* ===== 3-column stats ===== */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 16px 0 24px;
+}
+.stat-card {
+  border: 1px solid #ddd;
+  padding: 20px;
+  text-align: center;
+  background: #fff;
+}
+.stat-card .stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+.stat-card .stat-label {
+  font-size: 0.72rem;
+  color: #888;
+  margin-top: 4px;
+}
+
+/* ===== Flow diagram ===== */
+.flow-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.flow-step {
+  background: #f7f7f7;
+  border: 1px solid #ddd;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-width: 120px;
+}
+.flow-step.active {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #1a1a1a;
+}
+.flow-arrow {
+  font-size: 1.2rem;
+  color: #999;
+  padding: 0 6px;
+}
+
+/* ===== Slack preview ===== */
+.slack-preview {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0 24px;
+  font-family: 'Lato', 'Noto Sans JP', sans-serif;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  max-width: 560px;
+}
+.slack-preview .slack-header {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.slack-preview .slack-judgment {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.slack-preview .slack-judgment.red { color: #dc2626; }
+.slack-preview .slack-judgment.green { color: #16a34a; }
+.slack-preview .slack-quote {
+  border-left: 3px solid #ddd;
+  padding-left: 10px;
+  color: #555;
+  margin: 6px 0;
+}
+.slack-preview .slack-scores {
+  margin: 8px 0;
+}
+.slack-preview .slack-link {
+  color: #1264a3;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ===== Comparison ===== */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 16px 0 24px;
+}
+.comparison-col {
+  padding: 16px 20px;
+}
+.comparison-col.before {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+.comparison-col.after {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.comparison-col h4 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.comparison-col.before h4 { color: #b91c1c; }
+.comparison-col.after h4 { color: #15803d; }
+.comparison-col ul {
+  padding-left: 18px;
+  font-size: 0.8rem;
+}
+.comparison-col li { margin-bottom: 4px; }
+
+/* ===== Timeline ===== */
+.timeline {
+  margin: 16px 0 24px;
+  padding-left: 20px;
+  border-left: 2px solid #ddd;
+}
+.timeline-item {
+  position: relative;
+  padding: 0 0 20px 20px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -26px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ddd;
+  border: 2px solid #fff;
+}
+.timeline-item.active::before {
+  background: #1a1a1a;
+}
+.timeline-item .timeline-date {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #888;
+}
+.timeline-item .timeline-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.timeline-item .timeline-desc {
+  font-size: 0.8rem;
+  color: #555;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  #main { padding: 20px 16px 60px; }
+  .feature-grid, .stat-row, .comparison-grid { grid-template-columns: 1fr; }
+  .flow-container { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Sticky Nav ===== -->
+<nav id="sticky-nav">
+  <span class="nav-label">p032</span>
+  <a class="pill" href="#background">背景</a>
+  <a class="pill" href="#solution">解決策</a>
+  <a class="pill" href="#how-it-works">仕組み</a>
+  <a class="pill" href="#feedback-example">FB例</a>
+  <a class="pill" href="#architecture">技術設計</a>
+  <a class="pill" href="#schedule">スケジュール</a>
+  <a class="pill" href="#cost">コスト</a>
+  <a class="pill" href="#risks">リスク</a>
+</nav>
+
+<!-- ===== Main ===== -->
+<div id="main">
+
+<!-- ===== Header ===== -->
+<header class="report-header">
+  <h1>クライアント面談 AIフィードバックシステム</h1>
+  <p class="subtitle">面談ごとにAIが「視座の高い専門家」として厳しめのフィードバックを自動配信し、<br>コンサルタントの意識と質を継続的に引き上げる</p>
+  <p class="meta">p032 | 仕様書 v3 | 2026-03-30 | 作成: 堀江</p>
+
+  <div class="summary-box">
+    <h3>この提案のポイント（3行サマリー）</h3>
+    <ul>
+      <li><strong>課題</strong>: クライアント面談が「作業化」し、複数回の人的FBでも改善されない。FB側も疲弊している</li>
+      <li><strong>解決策</strong>: 面談の文字起こしからAIが毎回自動でフィードバック。5軸評価 + 「作業 or コンサルティング」判定。全自動・ボタン不要</li>
+      <li><strong>効果</strong>: FB工数ゼロ化、面談品質の定量可視化、個人の成長追跡。月100面談でも運用コスト $3〜10</li>
+    </ul>
+  </div>
+</header>
+
+<!-- ===== 1. Background ===== -->
+<h2 class="section-title" id="background">1. 背景: なぜ今これが必要か</h2>
+
+<h3 class="subsection-title">起きている問題</h3>
+
+<div class="accent-box">
+  <strong>発端:</strong> 部署内で「クライアントとの初回ヒアリングMTGの質が低い」ことが顕在化。<br>
+  これは一部署の問題ではなく、<strong>全社的に共通する課題</strong>として認識された。
+</div>
+
+<table>
+  <thead>
+    <tr><th style="width:30%">事象</th><th>具体例</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>基本的な質問の欠落</strong></td>
+      <td>財務コンサルなのに初回MTGで売上・利益を聞いていない。チーム全体で複数回FBしても何度も抜ける</td>
+    </tr>
+    <tr>
+      <td><strong>面談の「作業化」</strong></td>
+      <td>ヒアリングシート消化や制度説明だけで時間が埋まり、本質的な課題把握ができていない</td>
+    </tr>
+    <tr>
+      <td><strong>自己認識のズレ</strong></td>
+      <td>「財務のプロ＝書類作成人」という認識。コンサルタントとしての視座がない</td>
+    </tr>
+    <tr>
+      <td><strong>成果物が転記レベル</strong></td>
+      <td>補助金申請でクライアントの情報をそのまま転記するだけ。付加価値がない</td>
+    </tr>
+    <tr>
+      <td><strong>FBが改善に繋がらない</strong></td>
+      <td>社内FBされた点が改善されない。何度言っても同じ指摘が繰り返される</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="subsection-title">人によるFBの限界</h3>
+
+<div class="comparison-grid">
+  <div class="comparison-col before">
+    <h4>現状（人によるFB）</h4>
+    <ul>
+      <li>FBのコストが高く、上長が疲弊する（「言い続けるしかない」）</li>
+      <li>説教では危機感が本人に伝わらない</li>
+      <li>全社員の全面談を見るのは物理的に不可能</li>
+      <li>成長/停滞が可視化されない</li>
+      <li>放置すると低水準のまま固定化する</li>
+    </ul>
+  </div>
+  <div class="comparison-col after">
+    <h4>AIフィードバック導入後</h4>
+    <ul>
+      <li>面談ごとに自動でFB。上長の工数ゼロ</li>
+      <li>データ・数値で客観的に気づかせる</li>
+      <li>全社員の全面談を漏れなくカバー</li>
+      <li>5軸スコアで成長を定量追跡</li>
+      <li>毎回のFBで改善圧力を維持</li>
+    </ul>
+  </div>
+</div>
+
+<div class="info-box">
+  <strong>なぜAIか:</strong> 人によるFBはコストが高く、ROIが低い。AIなら面談ごとの定常的なFBを低コストで実現できる。<br>
+  説教より<strong>体験・データで気づかせる</strong>方が有効。
+</div>
+
+<!-- ===== 2. Solution ===== -->
+<h2 class="section-title" id="solution">2. 解決策: 何を作るか</h2>
+
+<p>面談の議事録・文字起こしをAIが分析し、<strong>「視座の高い専門家」として忖度なしのフィードバック</strong>を自動配信するシステム。</p>
+
+<div class="stat-row">
+  <div class="stat-card">
+    <div class="stat-value">全自動</div>
+    <div class="stat-label">ボタン不要。録画するだけ</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">5軸評価</div>
+    <div class="stat-label">定量スコア + 引用付き分析</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">1時間以内</div>
+    <div class="stat-label">面談終了からFB配信まで</div>
+  </div>
+</div>
+
+<h3 class="subsection-title">フィードバックの方向性</h3>
+
+<table>
+  <tbody>
+    <tr><th>誰に対するFBか</th><td><strong>対スタッフ</strong>（自社メンバー）目線。クライアント評価ではない</td></tr>
+    <tr><th>対象面談</th><td>クライアント商談（初回ヒアリング、提案、月次報告 等）</td></tr>
+    <tr><th>トーン</th><td><strong>厳しめ。忖度なし。</strong>プロとしての水準に満たない点は明確に指摘する</td></tr>
+    <tr><th>最重要評価基準</th><td>「作業としてこなしていないか」「コンサルタントとしての視座があるか」</td></tr>
+    <tr><th>コンテキスト</th><td>各部署・事業ごとにカスタマイズ（BPO営業 / 会計コンサル / COREWO財務 / 汎用）</td></tr>
+  </tbody>
+</table>
+
+<h3 class="subsection-title">5軸評価（全コンテキスト共通）</h3>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="feature-num">AXIS 01</div>
+    <h4>ヒアリング力</h4>
+    <p>クライアントの課題をどれだけ深く引き出せているか。形式的な質問で終わっていないか</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-num">AXIS 02</div>
+    <h4>提案力</h4>
+    <p>課題に対する解決策の具体性と説得力。転記・読み上げレベルになっていないか</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-num">AXIS 03</div>
+    <h4>関係構築</h4>
+    <p>信頼関係の構築と傾聴姿勢。クライアントの不安に寄り添えているか</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-num">AXIS 04</div>
+    <h4>構成・進行</h4>
+    <p>面談の構成力と時間管理。事前準備に基づいた仮説を持って臨んでいるか</p>
+  </div>
+</div>
+<div class="feature-grid" style="grid-template-columns: 1fr;">
+  <div class="feature-card">
+    <div class="feature-num">AXIS 05</div>
+    <h4>ネクストアクション</h4>
+    <p>具体的な次のステップの提示。期日・担当が明確で、双方が合意した状態で終了しているか</p>
+  </div>
+</div>
+
+<p>各コンテキストで<strong>チェックポイントと重み付け</strong>が異なる。例えばCOREWO財務では「初回MTGで売上・利益を聞いているか」がヒアリング力の必須チェック項目になる。</p>
+
+<h3 class="subsection-title">採点基準（ルーブリック）</h3>
+
+<p>AIの採点に一貫性を持たせるため、各スコアの意味を明示的に定義する。<strong>3が「普通」の基準</strong>。多くの面談は2-3に収まる想定。</p>
+
+<table>
+  <thead>
+    <tr><th style="width:60px">スコア</th><th>共通基準</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:center;font-size:1.1rem;font-weight:700;color:#dc2626">1</td>
+      <td>チェックポイントをほぼ満たしていない。基本的な質問・行動が欠落している。面談として成立していない水準</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-size:1.1rem;font-weight:700;color:#ea580c">2</td>
+      <td>形式的にこなしているが、表面的。深掘り・本質的な理解がない。<strong>「作業」レベル</strong></td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-size:1.1rem;font-weight:700;color:#ca8a04">3</td>
+      <td>基本はできているが、プロとしての付加価値が薄い。可もなく不可もなく</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-size:1.1rem;font-weight:700;color:#16a34a">4</td>
+      <td>チェックポイントを概ね満たし、クライアントに具体的な価値を提供している。改善余地はあるが水準以上</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-size:1.1rem;font-weight:700;color:#2563eb">5</td>
+      <td>全チェックポイントを高水準で達成。クライアントの期待を超える価値提供。<strong>模範的な面談</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="subsection-title">軸固有ルーブリック（例: COREWO財務 ヒアリング力）</h3>
+
+<p>事業部ごとにより具体的な採点基準を設定できる。以下はCOREWO財務のヒアリング力の例:</p>
+
+<table>
+  <thead>
+    <tr><th style="width:60px">スコア</th><th>COREWO財務「ヒアリング力」の基準</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align:center;font-weight:700;color:#dc2626">1</td>
+      <td>売上・利益すら聞いていない。ヒアリングシートを読み上げただけ</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-weight:700;color:#ea580c">2</td>
+      <td>売上・利益は聞いたが、数字の意味を深掘りしていない。聞きっぱなし</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-weight:700;color:#ca8a04">3</td>
+      <td>基本的な財務数値は確認したが、仮説提示や課題特定に至っていない</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-weight:700;color:#16a34a">4</td>
+      <td>財務数値を聞いた上で背景を深掘りし、課題仮説を提示できている</td>
+    </tr>
+    <tr>
+      <td style="text-align:center;font-weight:700;color:#2563eb">5</td>
+      <td>事業モデル・収益構造を深く理解し、クライアントが気づいていない課題を発見している</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note-box">
+  <strong>編集可能:</strong> ルーブリックはJSON設定ファイルで管理。各部署の実態に合わせて後から追加・編集できる。軸固有ルーブリックが未設定の場合は共通基準が適用される。
+</div>
+
+<!-- ===== 3. How it works ===== -->
+<h2 class="section-title" id="how-it-works">3. 仕組み: どう動くか</h2>
+
+<h3 class="subsection-title">ユーザーが行うこと</h3>
+
+<div class="success-box">
+  <strong>面談開始時に「録画」と「メモを取る」をONにするだけ。</strong><br>
+  それ以降は全自動。スタートボタン不要。
+</div>
+
+<h3 class="subsection-title">システムの処理フロー</h3>
+
+<div class="flow-container">
+  <div class="flow-step">面談終了<br><span style="font-size:0.68rem;color:#888">Google Meet</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">議事録Doc<br>自動生成<br><span style="font-size:0.68rem;color:#888">Gemini</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">テキスト<br>自動取得<br><span style="font-size:0.68rem;color:#888">1時間ポーリング</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step active">AI分析<br>FB生成<br><span style="font-size:0.68rem;color:#fff">Claude Sonnet</span></div>
+  <span class="flow-arrow">&rarr;</span>
+  <div class="flow-step">Slack配信<br>+ Notion保存</div>
+</div>
+
+<p>入力は<strong>ドキュメント（テキスト）ベース</strong>。Google Meet / Zoom / 対面 等の録画媒体を問わない。議事録・文字起こしがあればどの面談にも対応できる。</p>
+
+<h3 class="subsection-title">個人Driveからの自動収集</h3>
+
+<p>Google Meetの録画・議事録は録画者の個人My Driveに保存される。手動でのドキュメント移動は非現実的（遅延+忘れる）。</p>
+
+<table>
+  <thead>
+    <tr><th>方式</th><th>概要</th><th>メリット</th><th>デメリット</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>A: 共有ドライブ</strong></td>
+      <td>録画先を共有ドライブに設定</td>
+      <td>実装シンプル</td>
+      <td>全員の設定変更が必要</td>
+    </tr>
+    <tr style="background:#f0fdf4">
+      <td><strong>B: Domain-Wide Delegation（推奨）</strong></td>
+      <td>サービスアカウントで各ユーザーのDriveを走査</td>
+      <td>ユーザー設定変更不要。新メンバーも自動対応</td>
+      <td>GWS Admin権限が必要</td>
+    </tr>
+    <tr>
+      <td><strong>C: Apps Script</strong></td>
+      <td>各ユーザーのDriveにトリガー設置</td>
+      <td>リアルタイム検知</td>
+      <td>全員分のトリガー管理が煩雑</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note-box">
+  <strong>MVP段階:</strong> Admin権限取得に時間がかかる場合、暫定措置として共有ドライブ方式で先行リリースし、後からBに移行する。
+</div>
+
+<!-- ===== 4. Feedback Example ===== -->
+<h2 class="section-title" id="feedback-example">4. フィードバック出力イメージ</h2>
+
+<h3 class="subsection-title">Slack通知（自動配信）</h3>
+
+<div class="slack-preview">
+  <div class="slack-header">&#x1F4DD; 面談フィードバック — COREWO初回ヒアリング / A社様（3/28）</div>
+  <div class="slack-judgment red">&#x1F7E5; 総合判定: 作業</div>
+  <div class="slack-quote">制度説明とヒアリングシート消化で時間の大半を費やしており、クライアントの財務課題に踏み込めていない</div>
+  <div class="slack-scores">
+    &#x2B50; ヒアリング力: <strong>2</strong>/5<br>
+    &#x2B50; 提案力: <strong>2</strong>/5<br>
+    &#x2B50; 関係構築: <strong>3</strong>/5<br>
+    &#x2B50; 構成・進行: <strong>2</strong>/5<br>
+    &#x2B50; ネクストアクション: <strong>3</strong>/5<br>
+  </div>
+  <div style="margin: 8px 0;">
+    &#x26A0;&#xFE0F; <strong>致命的な見落とし</strong>
+  </div>
+  <div class="slack-quote">初回MTGにもかかわらず、売上・利益の確認を一切行っていない。財務コンサルとして最低限のヒアリング項目が欠落している</div>
+  <div style="margin: 8px 0;">
+    <strong>最優先改善ポイント</strong>
+  </div>
+  <div class="slack-quote">次回面談の冒頭10分で「御社の直近の売上と営業利益を教えていただけますか」と必ず確認し、その数字をもとに仮説を1つ提示すること</div>
+  <div style="margin-top: 10px;">
+    <a class="slack-link" href="#">&#x1F4D6; 詳細フィードバックを見る（Notion）</a>
+  </div>
+</div>
+
+<h3 class="subsection-title">高評価の場合</h3>
+
+<div class="slack-preview">
+  <div class="slack-header">&#x1F4DD; 面談フィードバック — BPO提案 / B社様（3/29）</div>
+  <div class="slack-judgment green">&#x1F7E2; 総合判定: コンサルティング</div>
+  <div class="slack-quote">クライアントの業務フローを深く理解した上で、具体的なBPO導入後のイメージを提示できていた</div>
+  <div class="slack-scores">
+    &#x2B50; ヒアリング力: <strong>4</strong>/5<br>
+    &#x2B50; 提案力: <strong>4</strong>/5<br>
+    &#x2B50; 関係構築: <strong>5</strong>/5<br>
+    &#x2B50; 構成・進行: <strong>4</strong>/5<br>
+    &#x2B50; ネクストアクション: <strong>4</strong>/5<br>
+  </div>
+  <div style="margin-top: 10px;">
+    <a class="slack-link" href="#">&#x1F4D6; 詳細フィードバックを見る（Notion）</a>
+  </div>
+</div>
+
+<h3 class="subsection-title">Notion保存（アーカイブ + トレンド分析用）</h3>
+
+<p>各フィードバックはNotion議事録DBに保存され、以下のプロパティで管理される:</p>
+
+<table>
+  <thead>
+    <tr><th>プロパティ</th><th>用途</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>面談日 / 参加者 / コンテキスト</td><td>検索・フィルタリング</td></tr>
+    <tr><td>総合判定（作業 / コンサルティング）</td><td>一目で面談品質がわかる</td></tr>
+    <tr><td>5軸スコア（各1-5）</td><td>定量トレンド分析の基盤</td></tr>
+    <tr><td>総合スコア（加重平均）</td><td>重視する軸の影響を反映した総合評価</td></tr>
+    <tr><td>詳細フィードバック（ページ本文）</td><td>引用付き分析 + アクションプラン</td></tr>
+  </tbody>
+</table>
+
+<!-- ===== 5. Architecture ===== -->
+<h2 class="section-title" id="architecture">5. 技術設計</h2>
+
+<h3 class="subsection-title">技術スタック</h3>
+
+<table>
+  <thead>
+    <tr><th>コンポーネント</th><th>技術</th><th>状態</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>面談録画・文字起こし</td><td>Google Meet + Gemini自動文字起こし</td><td>既存</td></tr>
+    <tr><td>ファイルアクセス</td><td>Google Drive / Docs API</td><td>既存</td></tr>
+    <tr><td><strong>AIフィードバック</strong></td><td><strong>Claude API（Sonnet 4.6）直接呼び出し</strong></td><td>SDK導入済み</td></tr>
+    <tr><td>配信</td><td>Slack API</td><td>既存</td></tr>
+    <tr><td>アーカイブ</td><td>Notion API</td><td>既存</td></tr>
+    <tr><td>スケジュール実行</td><td>Windows Task Scheduler &rarr; GCP Cloud Functions</td><td>既存パターン</td></tr>
+  </tbody>
+</table>
+
+<div class="info-box">
+  <strong>Claude Code非依存:</strong> Anthropic SDK（APIキー）でAIを呼び出すため、個人のClaude Code契約は不要。法人APIアカウント1つで全社対応。社内全メンバーが利用可能。
+</div>
+
+<h3 class="subsection-title">スコア抽出の信頼性</h3>
+
+<p>AIの出力からスコア（1-5）を確実に取得するため、Claude APIの<strong>構造化出力（tool_use）</strong>を使用。自由テキストのパースに依存しない堅牢な設計。</p>
+
+<!-- ===== 6. Schedule ===== -->
+<h2 class="section-title" id="schedule">6. スケジュール</h2>
+
+<div class="timeline">
+  <div class="timeline-item active">
+    <div class="timeline-date">3/30（本日）</div>
+    <div class="timeline-title">仕様書完成・レビュー</div>
+    <div class="timeline-desc">各開発メンバーの仕様書を比較・採用決定</div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">3/31</div>
+    <div class="timeline-title">Day 1: 基盤構築</div>
+    <div class="timeline-desc">テキスト取得 + コンテキストJSON + Claude API接続確認</div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">4/1</div>
+    <div class="timeline-title">Day 2: コアロジック</div>
+    <div class="timeline-desc">フィードバック生成 + プロンプト設計・テスト + Notion DB設計</div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">4/2</div>
+    <div class="timeline-title">Day 3: 出力・統合</div>
+    <div class="timeline-desc">Slack配信 + Notion保存 + ポーリング実装 + E2Eテスト</div>
+  </div>
+  <div class="timeline-item">
+    <div class="timeline-date">4/3</div>
+    <div class="timeline-title">Day 4: 仕上げ・完成</div>
+    <div class="timeline-desc">エラーハンドリング + Task Scheduler設定 + チームレビュー・デモ</div>
+  </div>
+</div>
+
+<div class="note-box">
+  <strong>リスク:</strong> Domain-Wide Delegation（全社員Drive走査権限）のAdmin設定が4/3までに間に合わない場合、MVP段階では共有ドライブまたは手動URL指定で先行リリースし、権限取得後に全社展開する。
+</div>
+
+<!-- ===== 7. Cost ===== -->
+<h2 class="section-title" id="cost">7. コスト</h2>
+
+<div class="stat-row">
+  <div class="stat-card">
+    <div class="stat-value">$0.03-0.15</div>
+    <div class="stat-label">1面談あたりのAI利用料</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">$3-15</div>
+    <div class="stat-label">月100面談の想定コスト</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">0時間</div>
+    <div class="stat-label">上長のFB工数</div>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>項目</th><th>コスト</th><th>備考</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Claude API（Sonnet）</td><td>$0.03-0.15/面談</td><td>入力5,000-15,000トークン（30分-1時間の面談）</td></tr>
+    <tr><td>Google Workspace</td><td>$0</td><td>既存ライセンス内。Meet録画+Gemini文字起こしは追加料金なし</td></tr>
+    <tr><td>Slack / Notion</td><td>$0</td><td>既存ライセンス内</td></tr>
+    <tr><td>インフラ（MVP）</td><td>$0</td><td>既存PCのTask Schedulerで実行</td></tr>
+    <tr><td><strong>合計（月100面談想定）</strong></td><td><strong>$3-15/月</strong></td><td>上長の手動FB工数と比較して圧倒的に低コスト</td></tr>
+  </tbody>
+</table>
+
+<!-- ===== 8. Risks ===== -->
+<h2 class="section-title" id="risks">8. リスクと対策</h2>
+
+<table>
+  <thead>
+    <tr><th style="width:25%">リスク</th><th style="width:10%">影響度</th><th>対策</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>個人Driveアクセス権限</strong></td>
+      <td>高</td>
+      <td>フォールバック: 共有ドライブ or 手動URL指定で先行リリース。権限取得後に全社展開</td>
+    </tr>
+    <tr>
+      <td><strong>面談録画忘れ</strong></td>
+      <td>高</td>
+      <td>運用ルール策定 + カレンダーリマインダー自動追加</td>
+    </tr>
+    <tr>
+      <td><strong>クライアント機密情報</strong></td>
+      <td>高</td>
+      <td>フィードバックは社内配信のみ。AIプロンプトで機密情報除外を指示</td>
+    </tr>
+    <tr>
+      <td><strong>文字起こし品質</strong></td>
+      <td>中</td>
+      <td>既存プロジェクトで日本語品質を検証済み。フルテキスト分析で精度確保</td>
+    </tr>
+    <tr>
+      <td><strong>FBが汎用的すぎる</strong></td>
+      <td>中</td>
+      <td>事業別コンテキストのチェックポイント具体化 + 引用必須のプロンプト設計</td>
+    </tr>
+    <tr>
+      <td><strong>API障害</strong></td>
+      <td>低</td>
+      <td>リトライ機構（3回、指数バックオフ）+ エラー時Slack通知</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===== 9. Future ===== -->
+<h2 class="section-title" id="future">9. 将来拡張</h2>
+
+<div class="feature-grid">
+  <div class="feature-card">
+    <div class="feature-num">PHASE 2（4月中旬〜）</div>
+    <h4>全社展開 + コンテキスト自動判定</h4>
+    <p>Domain-Wide Delegationで全社対応。カレンダーイベントからコンテキストを自動判定</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-num">PHASE 3（5月〜）</div>
+    <h4>トレンド分析 + チームレポート</h4>
+    <p>個人別の成長推移ダッシュボード。月次チーム集計。「繰り返し指摘パターン」の自動検出</p>
+  </div>
+</div>
+
+<!-- ===== Footer ===== -->
+<div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.72rem; color: #999;">
+  p032 クライアント面談AIフィードバックシステム — 仕様提案書 v3 | 2026-03-30 | 堀江
+</div>
+
+</div><!-- #main -->
+
+<script>
+// Pill active state on scroll
+const sections = document.querySelectorAll('[id]');
+const pills = document.querySelectorAll('.pill');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    const top = s.getBoundingClientRect().top;
+    if (top < 120) current = s.id;
+  });
+  pills.forEach(p => {
+    p.classList.toggle('active', p.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>
